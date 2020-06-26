@@ -1,23 +1,23 @@
+const DataTypes = require('sequelize/lib/data-types');
+
 'use strict';
 
 module.exports = {
-  up: (queryInterface, Sequelize) => {
-    /*
-      Add altering commands here.
-      Return a promise to correctly handle asynchronicity.
+    up: (queryInterface, Sequelize) => {
+        return queryInterface.addColumn(
+            'users',
+            'avatar_id',
+            {
+                type: DataTypes.INTEGER,
+                references: {model: 'files', key: 'id'},
+                onUpdate: 'CASCADE',
+                onDelete: 'SET NULL',
+                allowNull: true
+            }
+        );
+    },
 
-      Example:
-      return queryInterface.createTable('users', { id: Sequelize.INTEGER });
-    */
-  },
-
-  down: (queryInterface, Sequelize) => {
-    /*
-      Add reverting commands here.
-      Return a promise to correctly handle asynchronicity.
-
-      Example:
-      return queryInterface.dropTable('users');
-    */
-  }
+    down: (queryInterface, Sequelize) => {
+return queryInterface.removeColumn('users', 'avatar_id');
+    }
 };
