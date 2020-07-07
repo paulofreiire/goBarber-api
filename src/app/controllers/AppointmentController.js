@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import {startOfHour, parseISO, isBefore, format} from 'date-fns';
+import {startOfHour, parseISO, isBefore, format, subHours} from 'date-fns';
 import pt from 'date-fns/locale/pt';
 
 import Appointment from "../models/Appointment";
@@ -16,8 +16,6 @@ class AppointmentController {
             where: {user_id: req.userId, canceled_at: null},
             order: ['date'],
             attributes: ['id', 'date'],
-            limit: 20,
-            offset: (page - 1) * 20,
             include: [{
                 model: User,
                 as: 'provider',
@@ -43,7 +41,7 @@ class AppointmentController {
             return res.status(400).json({error: 'Validation fails'});
         }
 
-        const {provider_id, date} = req.body;
+        const {userId, provider_id, date} = req.body;
 
         const isProvider = await User.findOne({
             where: {id: provider_id, provider: true}
@@ -52,6 +50,10 @@ class AppointmentController {
         /*Check if provider_id is a provider*/
         if (!isProvider) {
             return res.status(401).json({error: 'You can only create appointments with providers'})
+        }
+
+        if (userId == provider_id) {
+            return res.status(401).json({error: 'You can not create appointment with yourself'})
         }
 
         const hourStart = startOfHour(parseISO(date));
@@ -93,6 +95,22 @@ class AppointmentController {
         })
 
         return res.json(appointment);
+    }
+
+    async delete(req, res) {
+        const appointment = await Appointment.findByPk(req.params.id);
+
+        if (appointment.user_id !== req.userId) {
+            return res.status(401).js({error: "you don't have permission to cancel this appointment"});
+        }
+
+        const dateWithSub = subHours(appointment.date, 2);
+
+        if(isBefore(dateWithSub, new Date()))
+
+
+
+        return res.json();
     }
 }
 
