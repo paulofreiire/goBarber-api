@@ -7,6 +7,9 @@ import User from "../models/User";
 import File from "../models/File";
 import Notification from "../schemas/Notification";
 
+import Mail from "../../lib/Mail";
+import {DataTypes} from "sequelize";
+
 
 class AppointmentController {
     async index(req, res) {
@@ -98,19 +101,40 @@ class AppointmentController {
     }
 
     async delete(req, res) {
-        const appointment = await Appointment.findByPk(req.params.id);
+        const appointment = await Appointment.findByPk(req.params.id, {
+            include: [
+                {
+                    model: User,
+                    as: 'provider',
+                    attributes: ['name', 'email']
+                }
+            ]
+        });
 
         if (appointment.user_id !== req.userId) {
             return res.status(401).js({error: "you don't have permission to cancel this appointment"});
         }
 
+
         const dateWithSub = subHours(appointment.date, 2);
 
-        if(isBefore(dateWithSub, new Date()))
+        if (isBefore(dateWithSub, new Date())) {
+            return res.status(401).json({
+                error: "You can only cancel appointments 2 hours in advance"
+            });
+        }
 
+        appointment.canceled_at = new Date();
 
+        await appointment.save();
 
-        return res.json();
+        /*await Mail.sendMail({
+            to: `${appointment.provider.name} <${appointment.provider.email}>`,
+            subject: 'Agendamento cancelado',
+            text: 'Você tem um novo cancelamento'
+        });*/
+
+        return res.json(appointment);
     }
 }
 
