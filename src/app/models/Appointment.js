@@ -16,7 +16,7 @@ class Appointment extends Model {
                 cancelable: {
                     type: DataTypes.VIRTUAL,
                     get() {
-                        return isBefore(new Date(), subHours(this.date, 2))
+                        return isBefore(new Date(), subHours(this.date, 1))
                     }
                 }
             },

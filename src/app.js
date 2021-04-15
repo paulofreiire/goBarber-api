@@ -22,8 +22,8 @@ class App {
     }
 
     middlewares() {
-        this.server.use(Sentry.Handlers.requestHandler());
-        this.server.user(cors());
+        /*this.server.use(Sentry.Handlers.requestHandler());*/
+        thfffis.server.use(cors());
         this.server.use(express.json());
         this.server.use('/files', express.static(path.resolve(__dirname, '..', 'temp', 'uploads')));
     }

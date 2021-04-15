@@ -12,11 +12,11 @@ import CancellationMail from "../jobs/CancellationMail";
 
 class AppointmentController {
     async index(req, res) {
-        const {page} = req.query;
+        const { page = 1 } = req.query;
 
         const appointment = await Appointment.findAll({
             where: {user_id: req.userId, canceled_at: null},
-            order: ['date'],
+            order: [['date', 'desc']],
             attributes: ['id', 'date', 'past', 'cancelable'],
             limit: 20,
             offset: (page - 1) * 20,
@@ -79,11 +79,20 @@ class AppointmentController {
             return res.status(400).json({error: 'Appointment date is not available'});
         }
 
-        const appointment = await Appointment.create({
+        const {id} = await Appointment.create({
             user_id: req.userId,
             provider_id,
             date
         });
+
+        const appointment = await Appointment.findOne({
+            where: {id: id},
+            include: [{
+                model: User,
+                as: 'provider',
+                attributes: ['id', 'name'],
+            }]
+        })
 
         const user = await User.findByPk(req.userId);
         const formattedDate = format(
@@ -124,11 +133,11 @@ class AppointmentController {
         }
 
 
-        const dateWithSub = subHours(appointment.date, 2);
+        const dateWithSub = subHours(appointment.date, 1);
 
         if (isBefore(dateWithSub, new Date())) {
             return res.status(401).json({
-                error: "You can only cancel appointments 2 hours in advance"
+                error: "You can only cancel appointments 1 hours in advance"
             });
         }
 

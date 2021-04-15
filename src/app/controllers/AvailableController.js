@@ -42,7 +42,6 @@ class AvailableController {
         const available = schedule.map(time => {
             const [hour, minute] = time.split(':');
             const value = setSeconds(setMinutes(setHours(searchDate, hour), minute), 0);
-            console.log(appointments)
             return {
                 time,
                 value: format(value, "yyyy-MM-dd'T'HH:mm:ssxxx"),
